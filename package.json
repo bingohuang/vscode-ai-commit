@@ -5,17 +5,30 @@
   "version": "0.0.1",
   "publisher": "bingohuang",
   "author": {
-    "name": "QingBing Huang"
+    "name": "Bingo Huang"
   },
   "license": "MIT",
-  "homepage": "https://github.com/bingohuang/vscode-ai-commit",
-  "bugs": {
-    "url": "https://github.com/bingohuang/vscode-ai-commit/issues"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/bingohuang/vscode-ai-commit"
   },
+  "homepage": "https://github.com/bingohuang/vscode-ai-commit",
+  "bugs": {
+    "url": "https://github.com/bingohuang/vscode-ai-commit/issues"
+  },
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#0f172a",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Machine Learning",
+    "Other"
+  ],
   "keywords": [
     "ai",
     "commit",
@@ -24,13 +37,6 @@
     "openai",
     "conventional",
     "commit-message"
-  ],
-  "engines": {
-    "vscode": "^1.110.0"
-  },
-  "categories": [
-    "Other",
-    "Machine Learning"
   ],
   "activationEvents": [],
   "main": "./out/extension.js",
