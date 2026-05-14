@@ -2,7 +2,7 @@
   "name": "ai-commit",
   "displayName": "AI Commit",
   "description": "VSCode 插件：通过AI生成Git规范提交",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "bingohuang",
   "author": {
     "name": "Bingo Huang"
@@ -65,6 +65,12 @@
           "type": "string",
           "default": "",
           "description": "Path to the Claude CLI executable. Leave empty to auto-detect."
+        },
+        "aiCommit.model": {
+          "type": "string",
+          "default": "haiku",
+          "enum": ["haiku", "sonnet"],
+          "description": "Claude model for commit message generation. Haiku is faster, Sonnet is more capable."
         },
         "aiCommit.debug": {
           "type": "boolean",

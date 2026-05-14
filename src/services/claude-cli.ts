@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import * as crypto from 'crypto';
 import { log, logDebug, logError } from '../utils/logger';
 
 export interface ClaudeResult {
@@ -23,7 +22,7 @@ export interface ClaudeCliOptions {
 	prompt: string;
 	systemPrompt: string;
 	cwd: string;
-	sessionId?: string;
+	model: string;
 }
 
 const SYSTEM_PROMPT = `You are a commit message generator following the Conventional Commits specification (v1.0.0).
@@ -129,64 +128,66 @@ export async function generateCommitMessage(diff: string, cwd: string): Promise<
 		);
 	}
 
-	const sessionId = crypto.randomUUID();
+	const config = vscode.workspace.getConfiguration('aiCommit');
+	const model = config.get<string>('model') || 'haiku';
+
 	const prompt = COMMIT_PROMPT_TEMPLATE.replace('{diff}', diff);
 
-	logDebug(`Session ID: ${sessionId}`);
 	logDebug(`CWD: ${cwd}`);
 	logDebug(`Diff length: ${diff.length} chars`);
+	logDebug(`Model: ${model}`);
 
 	const result = await executeClaude({
 		prompt,
 		systemPrompt: SYSTEM_PROMPT,
 		cwd,
-		sessionId,
+		model,
 	});
 
-	log(`Generated commit message (session: ${sessionId}, cost: $${result.total_cost_usd.toFixed(4)})`);
+	log(`Generated commit message (cost: $${result.total_cost_usd.toFixed(4)})`);
 	logDebug(`Tokens: ${result.usage.input_tokens} in / ${result.usage.output_tokens} out`);
 
 	return result.result.trim();
 }
 
 async function executeClaude(options: ClaudeCliOptions): Promise<ClaudeResult> {
-	const { prompt, systemPrompt, cwd, sessionId } = options;
+	const { prompt, systemPrompt, cwd, model } = options;
 
 	// Write prompt to a temp file to avoid shell escaping issues with large diffs.
-	// This is more robust than passing the prompt as a CLI argument.
 	const promptFile = path.join(os.tmpdir(), `ai-commit-prompt-${Date.now()}.txt`);
 	await fs.promises.writeFile(promptFile, prompt, { mode: 0o600 });
 
 	const cliPath = cliPathForExec();
 	const escapedCliPath = cliPath.includes(' ') ? `"${cliPath}"` : cliPath;
 
-	// Build args that are passed via the shell command line.
-	// Note: cwd is handled by execFile's cwd option, not as a CLI argument
+	// Optimized flags for speed:
+	// --bare: skips hooks, LSP, plugin sync, CLAUDE.md discovery (~6-13s saved)
+	// --model haiku: fastest model, sufficient for commit messages
+	// --effort low: reduces reasoning time (~0.5-1s saved)
+	// --output-format json: negligible overhead, gives us metadata
+	// --no-session-persistence: skips disk I/O for session saving
 	const args: string[] = [
 		'--print',
+		'--bare',
 		'--output-format', 'json',
+		'--model', model,
+		'--effort', 'low',
 		'--system-prompt', systemPrompt,
 		'--dangerously-skip-permissions',
+		'--no-session-persistence',
 	];
 
-	if (sessionId) {
-		args.push('--session-id', sessionId);
-	}
-
-	logDebug(`Executing: claude --print --output-format json ...`);
+	logDebug(`Executing: claude --print --bare --model ${model} ...`);
 
 	return new Promise((resolve, reject) => {
 		let execPath: string;
 		let execArgs: string[];
 
 		if (process.platform === 'win32') {
-			// On Windows, use cmd.exe to enable pipe/redirection support.
-			// cmd.exe uses double-quote escaping, not POSIX single quotes.
 			const winArgs = args.map(winShellEscape).join(' ');
 			execPath = 'cmd.exe';
 			execArgs = ['/c', `type "${promptFile}" | ${escapedCliPath} ${winArgs}`];
 		} else {
-			// On macOS/Linux, use login shell to load user's environment (PATH, etc.)
 			const baseCommand = `cat "${promptFile}" | ${escapedCliPath} ${args.map(shellEscape).join(' ')}`;
 			execPath = '/bin/bash';
 			execArgs = ['-l', '-c', baseCommand];
@@ -198,11 +199,10 @@ async function executeClaude(options: ClaudeCliOptions): Promise<ClaudeResult> {
 			{
 				cwd,
 				maxBuffer: 10 * 1024 * 1024,
-				timeout: 120_000,
-				env: { ...process.env },
+				timeout: 30_000,
+				env: { ...process.env, CLAUDE_CODE_SIMPLE: '1' },
 			},
 			(err, stdout, stderr) => {
-				// Clean up temp file regardless of outcome
 				fs.promises.unlink(promptFile).catch(() => { /* ignore cleanup errors */ });
 
 				if (err) {
@@ -235,7 +235,7 @@ async function executeClaude(options: ClaudeCliOptions): Promise<ClaudeResult> {
 							subtype: 'success',
 							is_error: false,
 							result: text,
-							session_id: sessionId || '',
+							session_id: '',
 							total_cost_usd: 0,
 							usage: { input_tokens: 0, output_tokens: 0 },
 						});

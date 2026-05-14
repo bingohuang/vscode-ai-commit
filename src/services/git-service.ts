@@ -46,8 +46,8 @@ export async function getUnstagedDiff(repoRoot: string): Promise<string | null> 
 
 async function executeGitDiff(repoRoot: string, cached: boolean): Promise<string | null> {
 	const args = cached
-		? ['diff', '--cached', '--unified=3']
-		: ['diff', '--unified=3'];
+		? ['diff', '--cached', '--unified=3', '--diff-algorithm=minimal']
+		: ['diff', '--unified=3', '--diff-algorithm=minimal'];
 
 	logDebug(`Running: git ${args.join(' ')} in ${repoRoot}`);
 
@@ -62,14 +62,46 @@ async function executeGitDiff(repoRoot: string, cached: boolean): Promise<string
 					resolve(null);
 					return;
 				}
-				const diff = stdout.trim();
-				if (diff) {
-					logDebug(`Got ${cached ? 'staged' : 'unstaged'} diff: ${diff.length} chars`);
+				const rawDiff = stdout.trim();
+				if (!rawDiff) {
+					resolve(null);
+					return;
 				}
-				resolve(diff || null);
+				const diff = stripDiffNoise(rawDiff);
+				logDebug(`Got ${cached ? 'staged' : 'unstaged'} diff: ${rawDiff.length} -> ${diff.length} chars`);
+				resolve(diff);
 			}
 		);
 	});
+}
+
+const IGNORED_EXTENSIONS = new Set([
+	'.lock', '.svg', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.ico', '.woff', '.woff2', '.ttf', '.eot',
+]);
+
+function stripDiffNoise(diff: string): string {
+	const blocks = diff.split(/(?=^diff --git )/m);
+	const kept: string[] = [];
+
+	for (const block of blocks) {
+		const fileLineMatch = block.match(/^diff --git a\/(.+?) b\/(?:.+)$/m);
+		if (fileLineMatch) {
+			const filePath = fileLineMatch[1];
+			const ext = filePath.substring(filePath.lastIndexOf('.'));
+			if (IGNORED_EXTENSIONS.has(ext)) {
+				continue;
+			}
+			// Skip lock-like file patterns (e.g. package-lock.json, pnpm-lock.yaml)
+			if (filePath.endsWith('-lock.json') || filePath.endsWith('-lock.yaml')) {
+				continue;
+			}
+		}
+		// Remove "index abc123..def456 100644" lines (hash + mode, no value for AI)
+		const cleaned = block.replace(/^index [0-9a-f]+\.\.\.[0-9a-f]+ \d+\n?/gm, '');
+		kept.push(cleaned);
+	}
+
+	return kept.join('').trim();
 }
 
 export async function getDiff(repoRoot: string): Promise<DiffResult | null> {
