@@ -2,6 +2,7 @@ import { execFile } from 'child_process';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import * as vscode from 'vscode';
 import { log, logDebug, logError } from '../utils/logger';
 
@@ -165,7 +166,8 @@ async function executeClaude(options: ClaudeCliOptions): Promise<ClaudeResult> {
 	// --model haiku: fastest model, sufficient for commit messages
 	// --effort low: reduces reasoning time (~0.5-1s saved)
 	// --output-format json: negligible overhead, gives us metadata
-	// --no-session-persistence: skips disk I/O for session saving
+	// --session-id: enables session persistence so history is visible in `claude -r`
+	// --name: display name for the session in `claude -r` picker
 	const args: string[] = [
 		'--print',
 		'--bare',
@@ -174,7 +176,8 @@ async function executeClaude(options: ClaudeCliOptions): Promise<ClaudeResult> {
 		'--effort', 'low',
 		'--system-prompt', systemPrompt,
 		'--dangerously-skip-permissions',
-		'--no-session-persistence',
+		'--session-id', crypto.randomUUID(),
+		'--name', 'AI Commit',
 	];
 
 	logDebug(`Executing: claude --print --bare --model ${model} ...`);

@@ -2,7 +2,7 @@
   "name": "ai-commit",
   "displayName": "AI Commit",
   "description": "VSCode 插件：通过AI生成Git规范提交",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "bingohuang",
   "author": {
     "name": "Bingo Huang"
