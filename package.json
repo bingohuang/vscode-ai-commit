@@ -1,13 +1,36 @@
 {
-  "name": "vscode-ai-commit",
-  "displayName": "vscode-ai-commit",
+  "name": "ai-commit",
+  "displayName": "AI Commit",
   "description": "VSCode 插件：通过AI生成Git规范提交",
   "version": "0.0.1",
+  "publisher": "bingohuang",
+  "author": {
+    "name": "QingBing Huang"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/bingohuang/vscode-ai-commit",
+  "bugs": {
+    "url": "https://github.com/bingohuang/vscode-ai-commit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bingohuang/vscode-ai-commit"
+  },
+  "keywords": [
+    "ai",
+    "commit",
+    "git",
+    "claude",
+    "openai",
+    "conventional",
+    "commit-message"
+  ],
   "engines": {
-    "vscode": "^1.120.0"
+    "vscode": "^1.110.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Machine Learning"
   ],
   "activationEvents": [],
   "main": "./out/extension.js",
