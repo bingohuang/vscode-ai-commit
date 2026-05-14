@@ -104,3 +104,36 @@ Removed unsupported --cwd argument from claude CLI command. The working director
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Add Claude session persistence and session ID tracking
+
+**Date**: 2026-05-14
+**Task**: Add Claude session persistence and session ID tracking
+**Branch**: `main`
+
+### Summary
+
+启用 Claude CLI 会话持久化：移除 --no-session-persistence，添加 --session-id (crypto.randomUUID()) 和 --name 'AI Commit' 参数，使用户可通过 claude -r 查看历史会话
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8b612ac` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
