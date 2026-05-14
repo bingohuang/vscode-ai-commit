@@ -71,3 +71,36 @@ Removed unsupported --cwd argument from claude CLI command. The working director
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: 优化AI Commit生成速度至5秒内
+
+**Date**: 2026-05-14
+**Task**: 优化AI Commit生成速度至5秒内
+**Branch**: `main`
+
+### Summary
+
+通过CLI标志优化(--bare, --model haiku, --effort low, CLAUDE_CODE_SIMPLE=1)和Diff预处理(--diff-algorithm=minimal, 过滤lock/binary/image, 清理index header)将commit message生成耗时从10s+降至预估2-5s。新增aiCommit.model配置项(haiku/sonnet)。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `18cacb7` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
