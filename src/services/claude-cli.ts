@@ -29,7 +29,8 @@ export interface ClaudeCliOptions {
 const SYSTEM_PROMPT = `You are a commit message generator following the Conventional Commits specification (v1.0.0).
 
 Rules:
-- Format: <type>[optional scope]: <description>[optional body]
+- Format: <type>[optional scope]: <description>
+  Optionally followed by a blank line and a <body> paragraph
 - Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
 - Use imperative mood ("add feature" not "added feature")
 - Subject line: max 72 characters
@@ -151,40 +152,50 @@ export async function generateCommitMessage(diff: string, cwd: string): Promise<
 async function executeClaude(options: ClaudeCliOptions): Promise<ClaudeResult> {
 	const { prompt, systemPrompt, cwd, sessionId } = options;
 
-	const promptBase64 = Buffer.from(prompt).toString('base64');
-	const decodedPrompt = Buffer.from(promptBase64, 'base64').toString('utf-8');
+	// Write prompt to a temp file to avoid shell escaping issues with large diffs.
+	// This is more robust than passing the prompt as a CLI argument.
+	const promptFile = path.join(os.tmpdir(), `ai-commit-prompt-${Date.now()}.txt`);
+	await fs.promises.writeFile(promptFile, prompt, { mode: 0o600 });
 
+	const cliPath = cliPathForExec();
+	const escapedCliPath = cliPath.includes(' ') ? `"${cliPath}"` : cliPath;
+
+	// Build args that are passed via the shell command line.
+	// --cwd ensures session files are saved to the repo's .claude directory.
 	const args: string[] = [
 		'--print',
-		decodedPrompt,
 		'--output-format', 'json',
 		'--system-prompt', systemPrompt,
 		'--dangerously-skip-permissions',
-		'--no-session-persistence',
+		'--cwd', cwd,
 	];
 
 	if (sessionId) {
 		args.push('--session-id', sessionId);
 	}
 
-	logDebug(`Executing: claude ${args.slice(0, 5).join(' ')} ...`);
+	logDebug(`Executing: claude --print --output-format json --cwd ${cwd} ...`);
 
 	return new Promise((resolve, reject) => {
-		const execArgs = process.platform === 'win32'
-			? args
-			: args;
+		let execPath: string;
+		let execArgs: string[];
 
-		const execPath = process.platform === 'win32'
-			? cliPathForExec()
-			: '/bin/bash';
-
-		const execArgsFinal = process.platform === 'win32'
-			? execArgs
-			: ['-l', '-c', `${shellEscape(cliPathForExec())} ${execArgs.map(shellEscape).join(' ')}`];
+		if (process.platform === 'win32') {
+			// On Windows, use cmd.exe to enable pipe/redirection support.
+			// cmd.exe uses double-quote escaping, not POSIX single quotes.
+			const winArgs = args.map(winShellEscape).join(' ');
+			execPath = 'cmd.exe';
+			execArgs = ['/c', `type "${promptFile}" | ${escapedCliPath} ${winArgs}`];
+		} else {
+			// On macOS/Linux, use login shell to load user's environment (PATH, etc.)
+			const baseCommand = `cat "${promptFile}" | ${escapedCliPath} ${args.map(shellEscape).join(' ')}`;
+			execPath = '/bin/bash';
+			execArgs = ['-l', '-c', baseCommand];
+		}
 
 		execFile(
 			execPath,
-			execArgsFinal,
+			execArgs,
 			{
 				cwd,
 				maxBuffer: 10 * 1024 * 1024,
@@ -192,6 +203,9 @@ async function executeClaude(options: ClaudeCliOptions): Promise<ClaudeResult> {
 				env: { ...process.env },
 			},
 			(err, stdout, stderr) => {
+				// Clean up temp file regardless of outcome
+				fs.promises.unlink(promptFile).catch(() => { /* ignore cleanup errors */ });
+
 				if (err) {
 					logError(`Claude CLI execution failed`, err);
 					if (stderr) {
@@ -213,7 +227,7 @@ async function executeClaude(options: ClaudeCliOptions): Promise<ClaudeResult> {
 						return;
 					}
 					resolve(result);
-				} catch (parseErr) {
+				} catch {
 					logDebug('JSON parse failed, treating stdout as plain text');
 					const text = stdout.trim();
 					if (text) {
@@ -230,7 +244,7 @@ async function executeClaude(options: ClaudeCliOptions): Promise<ClaudeResult> {
 						reject(new Error('Failed to parse Claude output and output was empty'));
 					}
 				}
-			}
+			},
 		);
 	});
 }
@@ -239,9 +253,18 @@ function cliPathForExec(): string {
 	return cachedCliPath || 'claude';
 }
 
+/** POSIX shell escaping using single quotes. */
 function shellEscape(arg: string): string {
 	if (/^[a-zA-Z0-9_./:-]+$/.test(arg)) {
 		return arg;
 	}
 	return `'${arg.replace(/'/g, "'\\''")}'`;
+}
+
+/** Windows cmd.exe escaping using double quotes. */
+function winShellEscape(arg: string): string {
+	if (/^[a-zA-Z0-9_./:-]+$/.test(arg)) {
+		return arg;
+	}
+	return `"${arg.replace(/"/g, '\\"')}"`;
 }

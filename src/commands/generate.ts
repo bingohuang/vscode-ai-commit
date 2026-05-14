@@ -33,7 +33,9 @@ export async function generateCommitMessageCommand(): Promise<void> {
 	if (!diffResult) {
 		const hasAny = await hasChanges(repoRoot);
 		if (hasAny) {
-			vscode.window.showWarningMessage('No staged or unstaged changes to generate a commit message from.');
+			vscode.window.showWarningMessage(
+				'No diffable changes found. Untracked files cannot be analyzed. Stage your changes first.',
+			);
 		} else {
 			vscode.window.showWarningMessage('No changes detected in the repository.');
 		}
