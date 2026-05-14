@@ -1,1 +1,4 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/tasks/05-14-ai-commit-mvp/prd.md", "reason": "Verify implementation against acceptance criteria and requirements"}
+{"file": ".trellis/tasks/05-14-ai-commit-mvp/research/vscode-git-api.md", "reason": "Verify correct VS Code Git API usage, scm/title menu registration, error handling patterns"}
+{"file": ".trellis/tasks/05-14-ai-commit-mvp/research/claude-cli-usage.md", "reason": "Verify Claude CLI invocation correctness, non-bare auth, JSON output parsing, session management"}
+{"file": ".trellis/tasks/05-14-ai-commit-mvp/research/commit-message-standards.md", "reason": "Verify Conventional Commits format compliance, prompt quality, body guidelines"}

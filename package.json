@@ -2,7 +2,7 @@
   "name": "ai-commit",
   "displayName": "AI Commit",
   "description": "VSCode 插件：通过AI生成Git规范提交",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "publisher": "bingohuang",
   "author": {
     "name": "Bingo Huang"
@@ -34,19 +34,45 @@
     "commit",
     "git",
     "claude",
-    "openai",
     "conventional",
     "commit-message"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:vscode-ai-commit.generate"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-ai-commit.helloWorld",
-        "title": "Hello World"
+        "command": "vscode-ai-commit.generate",
+        "title": "AI Commit: Generate Message",
+        "icon": "$(sparkle)"
       }
-    ]
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "vscode-ai-commit.generate",
+          "group": "navigation",
+          "when": "scmProvider == git"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AI Commit",
+      "properties": {
+        "aiCommit.claudePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the Claude CLI executable. Leave empty to auto-detect."
+        },
+        "aiCommit.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug mode to output detailed logs in the AI Commit output channel."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
