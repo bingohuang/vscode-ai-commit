@@ -38,3 +38,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: Fix Claude CLI --cwd option error
+
+**Date**: 2026-05-14
+**Task**: Fix Claude CLI --cwd option error
+**Branch**: `main`
+
+### Summary
+
+Removed unsupported --cwd argument from claude CLI command. The working directory is handled by execFile's cwd option instead.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5218bc8` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
