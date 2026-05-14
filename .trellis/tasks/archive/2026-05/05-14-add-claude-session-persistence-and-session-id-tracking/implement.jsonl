@@ -1,0 +1,2 @@
+{"file": ".trellis/tasks/05-14-add-claude-session-persistence-and-session-id-tracking/prd.md", "reason": "PRD with requirements, acceptance criteria, and technical approach"}
+{"file": ".trellis/tasks/05-14-add-claude-session-persistence-and-session-id-tracking/research/claude-cli-session.md", "reason": "Claude CLI session flags reference: --session-id, --name, --no-session-persistence, session storage architecture"}

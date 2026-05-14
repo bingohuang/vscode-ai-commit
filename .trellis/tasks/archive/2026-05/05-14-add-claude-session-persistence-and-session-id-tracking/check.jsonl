@@ -1,0 +1,2 @@
+{"file": ".trellis/tasks/05-14-add-claude-session-persistence-and-session-id-tracking/prd.md", "reason": "PRD with acceptance criteria to verify against"}
+{"file": ".trellis/tasks/05-14-add-claude-session-persistence-and-session-id-tracking/research/claude-cli-session.md", "reason": "Reference for correct CLI flag usage and session persistence behavior"}
