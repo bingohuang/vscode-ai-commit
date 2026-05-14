@@ -161,20 +161,19 @@ async function executeClaude(options: ClaudeCliOptions): Promise<ClaudeResult> {
 	const escapedCliPath = cliPath.includes(' ') ? `"${cliPath}"` : cliPath;
 
 	// Build args that are passed via the shell command line.
-	// --cwd ensures session files are saved to the repo's .claude directory.
+	// Note: cwd is handled by execFile's cwd option, not as a CLI argument
 	const args: string[] = [
 		'--print',
 		'--output-format', 'json',
 		'--system-prompt', systemPrompt,
 		'--dangerously-skip-permissions',
-		'--cwd', cwd,
 	];
 
 	if (sessionId) {
 		args.push('--session-id', sessionId);
 	}
 
-	logDebug(`Executing: claude --print --output-format json --cwd ${cwd} ...`);
+	logDebug(`Executing: claude --print --output-format json ...`);
 
 	return new Promise((resolve, reject) => {
 		let execPath: string;
