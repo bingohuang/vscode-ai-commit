@@ -1,6 +1,6 @@
 # vscode-ai-commit
 
-VSCode 插件：通过AI生成Git规范提交
+【AI开发教程】如何用AI帮你定制开发VS Code插件
 
 ## 一、初始化 VS Code 插件工程
 
@@ -187,7 +187,7 @@ npm -g install @vscode/vsce
 npm run package
 ```
 
-最初始化的vscode插件：`files/ai-commit-0.1.2.vsix`
+最初始化的vscode插件：`files/ai-commit-0.0.1.vsix`
 
 直接在 vscode 中安装看看效果
 
