@@ -3,6 +3,8 @@ dist
 node_modules
 .vscode-test/
 *.vsix
+!files/*.vsix
+.claude/worktrees
 
 # IDE
 #.idea
