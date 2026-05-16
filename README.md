@@ -2,6 +2,8 @@
 
 【AI开发教程】如何用AI帮你定制开发VS Code插件
 
+![](images/image-0.png)
+
 ## 一、初始化 VS Code 插件工程
 
 本地先安装 Node 和 Git，当然 vscode IDE 也是必须的 :)
